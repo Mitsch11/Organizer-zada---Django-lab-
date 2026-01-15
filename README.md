@@ -20,11 +20,13 @@ z wykorzystaniem panelu administratora Django oraz widoku użytkownika.
 - SQLite
 - HTML
 
-## Uruchomienie projektu lokalnie
-```bash
+## Uruchomienie (Windows)
+```bat
 python -m venv venv
 venv\Scripts\activate
 pip install django
 python manage.py migrate
+python manage.py createsuperuser
 python manage.py runserver
+
 
