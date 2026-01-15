@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <title>Organizer zadań</title>
+</head>
+<body>
+  <h1>Organizer zadań</h1>
+  <p>Dzisiaj: {{ dzis }}</p>
+
+  <form method="get">
+    <input name="q" placeholder="szukaj..." value="{{ q }}">
+    <select name="status">
+      <option value="">wszystkie</option>
+      <option value="todo" {% if status == "todo" %}selected{% endif %}>Do zrobienia</option>
+      <option value="doing" {% if status == "doing" %}selected{% endif %}>W trakcie</option>
+      <option value="done" {% if status == "done" %}selected{% endif %}>Zrobione</option>
+    </select>
+    <button type="submit">Filtruj</button>
+  </form>
+
+  <h2>Zaległe</h2>
+  <ul>
+    {% for z in zalegle %}
+      <li><b>{{ z.tytul }}</b> | termin: {{ z.termin }} | priorytet: {{ z.get_priorytet_display }} | status: {{ z.get_status_display }}</li>
+    {% empty %}
+      <li>Brak</li>
+    {% endfor %}
+  </ul>
+
+  <h2>Na dziś</h2>
+  <ul>
+    {% for z in na_dzis %}
+      <li><b>{{ z.tytul }}</b> | priorytet: {{ z.get_priorytet_display }}</li>
+    {% empty %}
+      <li>Brak</li>
+    {% endfor %}
+  </ul>
+
+  <h2>Nadchodzące</h2>
+  <ul>
+    {% for z in nadchodzace %}
+      <li><b>{{ z.tytul }}</b> | termin: {{ z.termin }} | priorytet: {{ z.get_priorytet_display }}</li>
+    {% empty %}
+      <li>Brak</li>
+    {% endfor %}
+  </ul>
+
+  <h2>Zrobione</h2>
+  <ul>
+    {% for z in zrobione %}
+      <li>{{ z.tytul }}</li>
+    {% empty %}
+      <li>Brak</li>
+    {% endfor %}
+  </ul>
+<h2>Wszystkie (po filtrach)</h2>
+<ul>
+  {% for z in wszystkie %}
+    <li><b>{{ z.tytul }}</b> | termin: {{ z.termin|default:"brak" }} | status: {{ z.get_status_display }}</li>
+  {% empty %}
+    <li>Brak</li>
+  {% endfor %}
+</ul>
+
+<h2>Bez terminu</h2>
+<ul>
+  {% for z in bez_terminu %}
+    <li><b>{{ z.tytul }}</b> | priorytet: {{ z.get_priorytet_display }}</li>
+  {% empty %}
+    <li>Brak</li>
+  {% endfor %}
+</ul>
+
+
+  <p><a href="/admin/">Panel admina</a></p>
+</body>
+</html>
