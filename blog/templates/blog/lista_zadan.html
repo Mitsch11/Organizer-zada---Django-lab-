@@ -2,77 +2,334 @@
 <html lang="pl">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Organizer zadań</title>
+
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#121a2b;
+      --muted:#9aa4b2;
+      --text:#e8eef7;
+      --border:#22304a;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+
+      --red:#ff5c6c;
+      --amber:#ffb020;
+      --blue:#4ea1ff;
+      --green:#35d39a;
+      --purple:#a78bfa;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(900px 600px at 20% 0%, #162243 0%, var(--bg) 50%) fixed;
+      color:var(--text);
+    }
+
+    .container{
+      max-width: 980px;
+      margin: 28px auto;
+      padding: 0 16px 40px;
+    }
+
+    .topbar{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      margin-bottom: 14px;
+    }
+
+    h1{
+      font-size: 32px;
+      margin: 0;
+      letter-spacing: .2px;
+    }
+
+    .sub{
+      color:var(--muted);
+      margin: 6px 0 0;
+      font-size: 14px;
+    }
+
+    .card{
+      background: rgba(18,26,43,.9);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      margin-top: 16px;
+      backdrop-filter: blur(6px);
+    }
+
+    .filters{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    input, select, button{
+      background:#0e1627;
+      border:1px solid var(--border);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius: 12px;
+      outline:none;
+    }
+
+    input{min-width: 220px}
+    button{
+      cursor:pointer;
+      background: linear-gradient(135deg, rgba(78,161,255,.25), rgba(53,211,154,.18));
+      border-color: rgba(78,161,255,.35);
+      font-weight:600;
+    }
+
+    .chips{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top: 10px;
+    }
+
+    .chip{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      padding:8px 10px;
+      border-radius: 999px;
+      border:1px solid var(--border);
+      color:var(--text);
+      text-decoration:none;
+      background: rgba(14,22,39,.7);
+      font-size: 13px;
+    }
+    .chip:hover{border-color: rgba(78,161,255,.6)}
+    .dot{width:8px;height:8px;border-radius:50%}
+    .dot.todo{background:var(--blue)}
+    .dot.doing{background:var(--amber)}
+    .dot.done{background:var(--green)}
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    @media (max-width: 800px){
+      .grid{grid-template-columns: 1fr;}
+    }
+
+    .section h2{
+      margin:0 0 10px;
+      font-size: 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .badge{
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border:1px solid var(--border);
+      color: var(--muted);
+      background: rgba(14,22,39,.7);
+    }
+
+    ul{list-style:none; padding:0; margin:0}
+    li{
+      padding: 10px 12px;
+      border:1px solid var(--border);
+      border-radius: 14px;
+      margin-bottom: 10px;
+      background: rgba(14,22,39,.55);
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      align-items:flex-start;
+    }
+
+    .title{
+      font-weight: 700;
+      letter-spacing: .2px;
+    }
+
+    .meta{
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 4px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .pill{
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border:1px solid var(--border);
+      background: rgba(18,26,43,.6);
+      color: var(--text);
+    }
+
+    .pill.prio-1{border-color: rgba(167,139,250,.35); color: #d7ccff;}
+    .pill.prio-2{border-color: rgba(255,176,32,.35); color: #ffe0a3;}
+    .pill.prio-3{border-color: rgba(255,92,108,.35); color: #ffc2c9;}
+
+    .footer{
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      display:flex;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+
+    a.link{
+      color:#9fd1ff;
+      text-decoration:none;
+    }
+    a.link:hover{text-decoration:underline}
+  </style>
 </head>
+
 <body>
-  <h1>Organizer zadań</h1>
-  <p>Dzisiaj: {{ dzis }}</p>
+  <div class="container">
 
-  <form method="get">
-    <input name="q" placeholder="szukaj..." value="{{ q }}">
-    <select name="status">
-      <option value="">wszystkie</option>
-      <option value="todo" {% if status == "todo" %}selected{% endif %}>Do zrobienia</option>
-      <option value="doing" {% if status == "doing" %}selected{% endif %}>W trakcie</option>
-      <option value="done" {% if status == "done" %}selected{% endif %}>Zrobione</option>
-    </select>
-    <button type="submit">Filtruj</button>
-  </form>
+    <div class="topbar">
+      <div>
+        <h1>Organizer zadań</h1>
+        <p class="sub">Dzisiaj: <b>{{ dzis }}</b></p>
+      </div>
 
-  <h2>Zaległe</h2>
-  <ul>
-    {% for z in zalegle %}
-      <li><b>{{ z.tytul }}</b> | termin: {{ z.termin }} | priorytet: {{ z.get_priorytet_display }} | status: {{ z.get_status_display }}</li>
-    {% empty %}
-      <li>Brak</li>
-    {% endfor %}
-  </ul>
+      <form class="filters" method="get">
+        <input name="q" placeholder="szukaj..." value="{{ q }}">
+        <select name="status">
+          <option value="">wszystkie</option>
+          <option value="todo" {% if status == "todo" %}selected{% endif %}>Do zrobienia</option>
+          <option value="doing" {% if status == "doing" %}selected{% endif %}>W trakcie</option>
+          <option value="done" {% if status == "done" %}selected{% endif %}>Zrobione</option>
+        </select>
+        <button type="submit">Filtruj</button>
+      </form>
+    </div>
 
-  <h2>Na dziś</h2>
-  <ul>
-    {% for z in na_dzis %}
-      <li><b>{{ z.tytul }}</b> | priorytet: {{ z.get_priorytet_display }}</li>
-    {% empty %}
-      <li>Brak</li>
-    {% endfor %}
-  </ul>
+    <div class="chips">
+      <a class="chip" href="/"><span class="dot"></span>Wszystkie</a>
+      <a class="chip" href="/?status=todo"><span class="dot todo"></span>Do zrobienia</a>
+      <a class="chip" href="/?status=doing"><span class="dot doing"></span>W trakcie</a>
+      <a class="chip" href="/?status=done"><span class="dot done"></span>Zrobione</a>
+    </div>
 
-  <h2>Nadchodzące</h2>
-  <ul>
-    {% for z in nadchodzace %}
-      <li><b>{{ z.tytul }}</b> | termin: {{ z.termin }} | priorytet: {{ z.get_priorytet_display }}</li>
-    {% empty %}
-      <li>Brak</li>
-    {% endfor %}
-  </ul>
+    {% if wszystkie %}
+    <div class="card">
+      <div class="section">
+        <h2>Wszystkie (po filtrach) <span class="badge">{{ wszystkie|length }}</span></h2>
+        <ul>
+          {% for z in wszystkie %}
+          <li>
+            <div class="row">
+              <div>
+                <div class="title">{{ z.tytul }}</div>
+                <div class="meta">
+                  <span class="pill">Status: {{ z.get_status_display }}</span>
+                  <span class="pill prio-{{ z.priorytet }}">Priorytet: {{ z.get_priorytet_display }}</span>
+                  <span class="pill">Termin: {{ z.termin|default:"brak" }}</span>
+                </div>
+              </div>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% endif %}
 
-  <h2>Zrobione</h2>
-  <ul>
-    {% for z in zrobione %}
-      <li>{{ z.tytul }}</li>
-    {% empty %}
-      <li>Brak</li>
-    {% endfor %}
-  </ul>
-<h2>Wszystkie (po filtrach)</h2>
-<ul>
-  {% for z in wszystkie %}
-    <li><b>{{ z.tytul }}</b> | termin: {{ z.termin|default:"brak" }} | status: {{ z.get_status_display }}</li>
-  {% empty %}
-    <li>Brak</li>
-  {% endfor %}
-</ul>
+    <div class="grid">
+      <div class="card section">
+        <h2>Zaległe <span class="badge">{{ zalegle|length }}</span></h2>
+        <ul>
+          {% for z in zalegle %}
+            <li>
+              <div class="title">{{ z.tytul }}</div>
+              <div class="meta">
+                <span class="pill prio-{{ z.priorytet }}">Priorytet: {{ z.get_priorytet_display }}</span>
+                <span class="pill">Termin: {{ z.termin|default:"brak" }}</span>
+              </div>
+            </li>
+          {% empty %}
+            <li class="meta">Brak</li>
+          {% endfor %}
+        </ul>
+      </div>
 
-<h2>Bez terminu</h2>
-<ul>
-  {% for z in bez_terminu %}
-    <li><b>{{ z.tytul }}</b> | priorytet: {{ z.get_priorytet_display }}</li>
-  {% empty %}
-    <li>Brak</li>
-  {% endfor %}
-</ul>
+      <div class="card section">
+        <h2>Na dziś <span class="badge">{{ na_dzis|length }}</span></h2>
+        <ul>
+          {% for z in na_dzis %}
+            <li>
+              <div class="title">{{ z.tytul }}</div>
+              <div class="meta">
+                <span class="pill prio-{{ z.priorytet }}">Priorytet: {{ z.get_priorytet_display }}</span>
+              </div>
+            </li>
+          {% empty %}
+            <li class="meta">Brak</li>
+          {% endfor %}
+        </ul>
+      </div>
 
+      <div class="card section">
+        <h2>Nadchodzące <span class="badge">{{ nadchodzace|length }}</span></h2>
+        <ul>
+          {% for z in nadchodzace %}
+            <li>
+              <div class="title">{{ z.tytul }}</div>
+              <div class="meta">
+                <span class="pill prio-{{ z.priorytet }}">Priorytet: {{ z.get_priorytet_display }}</span>
+                <span class="pill">Termin: {{ z.termin|default:"brak" }}</span>
+              </div>
+            </li>
+          {% empty %}
+            <li class="meta">Brak</li>
+          {% endfor %}
+        </ul>
+      </div>
 
-  <p><a href="/admin/">Panel admina</a></p>
+      <div class="card section">
+        <h2>Zrobione <span class="badge">{{ zrobione|length }}</span></h2>
+        <ul>
+          {% for z in zrobione %}
+            <li>
+              <div class="title">{{ z.tytul }}</div>
+              <div class="meta">
+                <span class="pill">Termin: {{ z.termin|default:"brak" }}</span>
+              </div>
+            </li>
+          {% empty %}
+            <li class="meta">Brak</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>Panel zarządzania: <a class="link" href="/admin/">/admin</a></span>
+      <span>Widok działa lokalnie na serwerze deweloperskim Django.</span>
+    </div>
+
+  </div>
 </body>
 </html>
+
